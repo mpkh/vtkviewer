@@ -1,8 +1,6 @@
 VTK Viewer
 ==========
 
-![VTK Viewer screenshot](http://cs.unc.edu/~hal/images/vtkviewer_bunny.png)
-
 Written 2012-2013 Hal Canary <[http://cs.unc.edu/~hal](http://cs.unc.edu/~hal/)>. Copyright 2012-2013 University of North Carolina at Chapel Hill.
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.  You may obtain a copy of the License at
@@ -38,9 +36,8 @@ If the surface lacks normals, they are added with the vtkPolyDataNormals filter.
 Required Packages:
 ------------------
 
-*	libvtk5.8-qt4
-*	libvtk5.8
-*	libqtgui4
+*	vtk6+ (with qt support)
+*	qt5+
 *	cmake
 
 Example installation instructions:
@@ -48,7 +45,7 @@ Example installation instructions:
 
 Install packages:
 
-    $ sudo apt-get install -y libvtk5.8-qt4 libvtk5.8 libqtgui4 cmake git
+    $ sudo apt-get install -y libvtk-qt5 libvtk libqtgui5 cmake git
 
 or
 
