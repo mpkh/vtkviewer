@@ -35,6 +35,7 @@
 #include <vtkPolyDataReader.h>
 #include <vtkProperty.h>
 #include <vtkRenderWindow.h>
+#include <vtkRenderWindowInteractor.h>
 #include <vtkSphereSource.h>
 #include <vtkSTLReader.h>
 #include <vtkTubeFilter.h>
@@ -45,6 +46,8 @@
 #include <vtkXMLRectilinearGridReader.h>
 #include <vtkXMLStructuredGridReader.h>
 #include <vtkXMLUnstructuredGridReader.h>
+#include <vtkTimerLog.h>
+#include <vtkCallbackCommand.h>
 #if VTK_MAJOR_VERSION <= 5
 #define setInputData(x,y) ((x)->SetInput(y))
 #define addInputData(x,y) ((x)->AddInput(y))
@@ -206,6 +209,9 @@ VTKViewer::VTKViewer() :
 
 }
 
+vtkTextActor* VTKViewer::m_TextActor = vtkTextActor::New();
+char VTKViewer::m_textBuff[128];
+
 void VTKViewer::start()
 {
   vtkSmartPointer < vtkRenderWindow > renderWindow =
@@ -224,7 +230,52 @@ void VTKViewer::start()
   this->resize(480, 480);
   this->setMinimumSize(480, 360);
   connect(&(m_timer), SIGNAL(timeout()), this, SLOT(rotate()));
-  m_timer.start(66);
+  m_timer.start(33);
+
+  connect(&(m_FPStimer), SIGNAL(timeout()), this, SLOT(updateFPS()));
+  m_FPStimer.start(1000);
+
+  vtkSmartPointer < vtkPolyDataMapper > mapper =
+      vtkSmartPointer < vtkPolyDataMapper >::New();
+
+  vtkSmartPointer < vtkActor > actor =
+      vtkSmartPointer < vtkActor >::New();
+  actor->SetMapper(mapper);
+
+  m_renderer->AddActor(VTKViewer::m_TextActor);
+
+  //vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractor =
+  //  vtkSmartPointer<vtkRenderWindowInteractor>::New();
+  //renderWindowInteractor->SetRenderWindow(renderWindow);
+  //renderWindowInteractor->Start();
+
+  vtkSmartPointer<vtkCallbackCommand> callback =
+    vtkSmartPointer<vtkCallbackCommand>::New();
+
+  callback->SetCallback(CallbackFunction);
+  m_renderer->AddObserver(vtkCommand::EndEvent, callback);
+
+  renderWindow->Render();
+
+}
+
+static int fps = 0;
+
+void VTKViewer::CallbackFunction(vtkObject* caller, long unsigned int vtkNotUsed(eventId), void* vtkNotUsed(clientData), void* vtkNotUsed(callData) )
+{
+  //vtkRenderer* renderer = static_cast<vtkRenderer*>(caller);
+  //double timeInSeconds = renderer->GetLastRenderTimeInSeconds();
+  //double fps = 1.0/timeInSeconds;
+  //sprintf(VTKViewer::m_textBuff, "FPS: %.0f", fps);
+  fps++;
+}
+
+void VTKViewer::updateFPS()
+{
+  sprintf(VTKViewer::m_textBuff, "FPS: %d", fps);
+  VTKViewer::m_TextActor->SetInput(VTKViewer::m_textBuff);
+  fps = 0;
+  m_renderer->Render();
 }
 
 void VTKViewer::add(vtkPolyData * polyData)
@@ -255,11 +306,6 @@ void VTKViewer::add(vtkPolyData * polyData)
   actor->GetProperty()->SetPointSize(3);
   actor->SetMapper(mapper);
   m_renderer->AddActor(actor);
-}
-
-void VTKViewer::test()
-{
-  ///TODO
 }
 
 void VTKViewer::add(const char * file_name)
@@ -302,7 +348,7 @@ void VTKViewer::add(const char * file_name)
 void VTKViewer::toggleRotate()
 {
   if (m_timer.isActive()) m_timer.stop();
-  else                    m_timer.start(33);
+  else                    m_timer.start(0.001);
 }
 
 void VTKViewer::rotate()

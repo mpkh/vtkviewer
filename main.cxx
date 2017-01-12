@@ -72,8 +72,6 @@ int main(int argc, char ** argv)
   makeShortcut(Qt::CTRL + Qt::Key_T, mw, v, SLOT(nextStereoType()));
   makeShortcut(Qt::CTRL + Qt::Key_P, mw, v, SLOT(screenshot()));
 
-  makeShortcut(Qt::CTRL + Qt::Key_X, mw, v, SLOT(test()));
-
   mw.setCentralWidget(&v);
   for (int i = 1; i < argc; ++i) {
     QThread::sleep(1);

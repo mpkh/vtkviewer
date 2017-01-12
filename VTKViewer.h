@@ -25,6 +25,8 @@
 #include <QVTKWidget.h>
 #include <vtkRenderer.h>
 #include <vtkSmartPointer.h>
+#include <vtkTextActor.h>
+#include <vtkActor.h>
 class vtkPolyData;
 
 class VTKViewer : public QVTKWidget {
@@ -34,8 +36,12 @@ public:
   void add(vtkPolyData * polyData);
   void add(const char * file_name);
   void start();
+
+  static vtkTextActor* m_TextActor;
+  static char m_textBuff[128];
+
 public slots:
-  void test();
+  void updateFPS();
   void rotate();
   void toggleRotate();
   void toggleStereo();
@@ -43,7 +49,9 @@ public slots:
   void nextStereoType();
   void screenshot();
 private:
+  static void CallbackFunction(vtkObject* caller, long unsigned int vtkNotUsed(eventId), void* vtkNotUsed(clientData), void* vtkNotUsed(callData) );
   QTimer m_timer;
+  QTimer m_FPStimer;
   vtkSmartPointer < vtkRenderer > m_renderer;
 };
 
