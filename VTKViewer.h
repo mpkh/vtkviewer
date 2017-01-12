@@ -14,22 +14,28 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
 // implied.  See the License for the specific language governing
 // permissions and limitations under the License.
+
 #ifndef VTKVIEWER_H
 #define VTKVIEWER_H
+
 #include <cassert>
+
 #include <QTimer>
+
 #include <QVTKWidget.h>
 #include <vtkRenderer.h>
 #include <vtkSmartPointer.h>
 class vtkPolyData;
 
 class VTKViewer : public QVTKWidget {
-  Q_OBJECT;
+  Q_OBJECT
 public:
   VTKViewer();
   void add(vtkPolyData * polyData);
   void add(const char * file_name);
+  void start();
 public slots:
+  void test();
   void rotate();
   void toggleRotate();
   void toggleStereo();

@@ -21,43 +21,45 @@
 #include <QMainWindow>
 #include <QAction>
 #include <QShortcut>
+#include <QThread>
 
 #include "VTKViewer.h"
 
 static void makeShortcut(
-    int key, QWidget & parent, QWidget & target, const char * slot) {
+    int key, QWidget & parent, QWidget & target, const char * slot)
+{
   QObject::connect(
-      new QShortcut(QKeySequence(key), &parent),
-      SIGNAL(activated()), &target, slot);
+        new QShortcut(QKeySequence(key), &parent),
+        SIGNAL(activated()), &target, slot);
 }
 
-int main(int argc, char ** argv) {
-  if (argc == 1)
-    {
+int main(int argc, char ** argv)
+{
+  if (argc == 1) {
     std::cerr
-      << "\nUseage:  \n  " << argv[0]
-      << " FILE [MORE FILES...]\n"
-      "Supported File Formats:\n"
-      "  *.vtk - VTK Legacy File\n"
-      "  *.vtp - VTK Polygonal Data File\n"
-      "  *.ply - Stanford Polygon File\n"
-      "  *.obj - Wavefront Object file\n"
-      "  *.stl - Stereolithography File\n"
-      "  *.pdb - Protein Data Bank File\n"
-      "  *.vtu - VTK Unstructured Grid Data File\n"
-      "Controls:\n"
-      "  's' - surface\n"
-      "  'w' - wireframe\n"
-      "  'r' - reset and center camera\n"
-      "  'ctrl-q' - quit\n"
-      "  'ctrl-r' - toggle rotation\n"
-      "  'ctrl-s' - toggle stereo mode\n"
-      "  'ctrl-t' - change stereo type\n"
-      "  'ctrl-p' - screenshot\n"
-      "More Info:\n"
-      "  https://github.com/HalCanary/vtkviewer\n\n";
+        << "\nUseage:  \n  " << argv[0]
+        << " FILE [MORE FILES...]\n"
+           "Supported File Formats:\n"
+           "  *.vtk - VTK Legacy File\n"
+           "  *.vtp - VTK Polygonal Data File\n"
+           "  *.ply - Stanford Polygon File\n"
+           "  *.obj - Wavefront Object file\n"
+           "  *.stl - Stereolithography File\n"
+           "  *.pdb - Protein Data Bank File\n"
+           "  *.vtu - VTK Unstructured Grid Data File\n"
+           "Controls:\n"
+           "  's' - surface\n"
+           "  'w' - wireframe\n"
+           "  'r' - reset and center camera\n"
+           "  'ctrl-q' - quit\n"
+           "  'ctrl-r' - toggle rotation\n"
+           "  'ctrl-s' - toggle stereo mode\n"
+           "  'ctrl-t' - change stereo type\n"
+           "  'ctrl-p' - screenshot\n"
+           "More Info:\n"
+           "  https://github.com/HalCanary/vtkviewer\n\n";
     return 1;
-    }
+  }
 
   QApplication app(argc, argv);
   QMainWindow mw;
@@ -70,11 +72,16 @@ int main(int argc, char ** argv) {
   makeShortcut(Qt::CTRL + Qt::Key_T, mw, v, SLOT(nextStereoType()));
   makeShortcut(Qt::CTRL + Qt::Key_P, mw, v, SLOT(screenshot()));
 
+  makeShortcut(Qt::CTRL + Qt::Key_X, mw, v, SLOT(test()));
+
   mw.setCentralWidget(&v);
-  for (int i = 1; i < argc; ++i)
-    {
+  for (int i = 1; i < argc; ++i) {
+    QThread::sleep(1);
     v.add(argv[i]);
-    }
+  }
   mw.showMaximized();
+
+  v.start();
+
   return app.exec();
 }

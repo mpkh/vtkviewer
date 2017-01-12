@@ -46,11 +46,11 @@
 #include <vtkXMLStructuredGridReader.h>
 #include <vtkXMLUnstructuredGridReader.h>
 #if VTK_MAJOR_VERSION <= 5
-  #define setInputData(x,y) ((x)->SetInput(y))
-  #define addInputData(x,y) ((x)->AddInput(y))
+#define setInputData(x,y) ((x)->SetInput(y))
+#define addInputData(x,y) ((x)->AddInput(y))
 #else
-  #define setInputData(x,y) ((x)->SetInputData(y))
-  #define addInputData(x,y) ((x)->AddInputData(y))
+#define setInputData(x,y) ((x)->SetInputData(y))
+#define addInputData(x,y) ((x)->AddInputData(y))
 #endif
 
 #include "VTKViewer.h"
@@ -61,19 +61,19 @@ static vtkSmartPointer< vtkPolyData > ReadPDB(
     const char * file_name)
 {
   vtkSmartPointer<vtkPDBReader> pdb =
-    vtkSmartPointer<vtkPDBReader>::New();
+      vtkSmartPointer<vtkPDBReader>::New();
   pdb->SetFileName(file_name);
   pdb->SetHBScale(1.0);
   pdb->SetBScale(1.0);
   pdb->Update();
 
   vtkSmartPointer<vtkSphereSource> sphere =
-    vtkSmartPointer<vtkSphereSource>::New();
+      vtkSmartPointer<vtkSphereSource>::New();
   sphere->SetCenter(0, 0, 0);
   sphere->SetRadius(1);
 
   vtkSmartPointer<vtkGlyph3D> glyph =
-    vtkSmartPointer<vtkGlyph3D>::New();
+      vtkSmartPointer<vtkGlyph3D>::New();
   glyph->SetInputConnection(pdb->GetOutputPort());
   glyph->SetSourceConnection(sphere->GetOutputPort());
   glyph->SetOrient(1);
@@ -83,7 +83,7 @@ static vtkSmartPointer< vtkPolyData > ReadPDB(
   glyph->Update();
 
   vtkSmartPointer<vtkTubeFilter> tube =
-    vtkSmartPointer<vtkTubeFilter>::New();
+      vtkSmartPointer<vtkTubeFilter>::New();
   tube->SetInputConnection(pdb->GetOutputPort());
   tube->SetNumberOfSides(6);
   tube->CappingOff();
@@ -93,20 +93,22 @@ static vtkSmartPointer< vtkPolyData > ReadPDB(
   tube->Update();
 
   vtkSmartPointer< vtkPolyData > tubeMesh =
-    vtkSmartPointer< vtkPolyData >::New();
+      vtkSmartPointer< vtkPolyData >::New();
   tubeMesh->ShallowCopy(tube->GetOutput());
   vtkIdType N = tubeMesh->GetNumberOfPoints();
 
+  /*
   vtkUnsignedCharArray * rgb_colors
-    = vtkUnsignedCharArray::SafeDownCast(
-      tubeMesh->GetPointData()->GetArray("rgb_colors"));
+      = vtkUnsignedCharArray::SafeDownCast(
+        tubeMesh->GetPointData()->GetArray("rgb_colors"));
   const unsigned char tuple[3] = {127,127,127};
   if ((rgb_colors != NULL) & (rgb_colors->GetNumberOfComponents() == 3))
     for (vtkIdType i = 0; i < N ; ++i)
       rgb_colors->SetTupleValue(i, tuple);
+  */
 
   vtkSmartPointer< vtkAppendPolyData > appendFilter =
-    vtkSmartPointer< vtkAppendPolyData >::New();
+      vtkSmartPointer< vtkAppendPolyData >::New();
   appendFilter->AddInputConnection(glyph->GetOutputPort());
   addInputData(appendFilter, tubeMesh);
   appendFilter->Update();
@@ -119,11 +121,11 @@ static vtkSmartPointer< vtkPolyData > ConvertDataSetToSurface(
     vtkAlgorithmOutput * outputPort)
 {
   vtkSmartPointer< vtkDataSetSurfaceFilter > dataSetSurfaceFilter =
-    vtkSmartPointer< vtkDataSetSurfaceFilter >::New();
+      vtkSmartPointer< vtkDataSetSurfaceFilter >::New();
   dataSetSurfaceFilter->SetInputConnection(outputPort);
   dataSetSurfaceFilter->Update();
   vtkSmartPointer< vtkPolyData > polyData =
-    dataSetSurfaceFilter->GetOutput();
+      dataSetSurfaceFilter->GetOutput();
   return polyData;
 }
 
@@ -134,7 +136,7 @@ static vtkSmartPointer< vtkPolyData > read(const char * file_name)
   reader->SetFileName(file_name);
   reader->Update();
   vtkSmartPointer< vtkPolyData > polyData =
-    reader->GetOutput();
+      reader->GetOutput();
   return polyData;
 }
 
@@ -150,92 +152,73 @@ static vtkSmartPointer< vtkPolyData > readDataSet(const char * file_name)
 static vtkSmartPointer< vtkPolyData > ReadLegacyVTK(const char * file_name)
 {
   vtkSmartPointer < vtkDataSetReader > reader =
-    vtkSmartPointer < vtkDataSetReader >::New();
+      vtkSmartPointer < vtkDataSetReader >::New();
   reader->SetFileName(file_name);
   reader->Update();
-  if (NULL != reader->GetPolyDataOutput())
-    {
+  if (NULL != reader->GetPolyDataOutput()) {
     vtkSmartPointer< vtkPolyData > polyData =
-      reader->GetPolyDataOutput();
+        reader->GetPolyDataOutput();
     return polyData;
-    }
-  else if (
-    (NULL != reader->GetUnstructuredGridOutput()) ||
-    (NULL != reader->GetStructuredPointsOutput()) ||
-    (NULL != reader->GetStructuredGridOutput()) ||
-    (NULL != reader->GetRectilinearGridOutput()))
-    {
+  }
+  else if ((NULL != reader->GetUnstructuredGridOutput()) ||
+           (NULL != reader->GetStructuredPointsOutput()) ||
+           (NULL != reader->GetStructuredGridOutput()) ||
+           (NULL != reader->GetRectilinearGridOutput())) {
     return ConvertDataSetToSurface(reader->GetOutputPort());
-    }
-  else
-    {
+  }
+  else {
     std::cerr << "unsupported: ????????\n";
     return vtkSmartPointer< vtkPolyData >::New();
-    }
+  }
 }
 
 int GetVTKStereoType(const QByteArray & stereoType) {
-  if (stereoType == "CRYSTAL_EYES")
-    {
+  if (stereoType == "CRYSTAL_EYES") {
     return (VTK_STEREO_CRYSTAL_EYES);
-    }
-  else if (stereoType == "RED_BLUE")
-    {
+  } else if (stereoType == "RED_BLUE") {
     return (VTK_STEREO_RED_BLUE);
-    }
-  else if (stereoType == "INTERLACED")
-    {
+  } else if (stereoType == "INTERLACED") {
     return (VTK_STEREO_INTERLACED);
-    }
-  else if (stereoType == "LEFT")
-    {
+  } else if (stereoType == "LEFT") {
     return (VTK_STEREO_LEFT);
-    }
-  else if (stereoType == "RIGHT")
-    {
+  } else if (stereoType == "RIGHT") {
     return (VTK_STEREO_RIGHT);
-    }
-  else if (stereoType == "DRESDEN")
-    {
+  } else if (stereoType == "DRESDEN") {
     return (VTK_STEREO_DRESDEN);
-    }
-  else if (stereoType == "ANAGLYPH")
-    {
+  } else if (stereoType == "ANAGLYPH") {
     return (VTK_STEREO_ANAGLYPH);
-    }
-  else if (stereoType == "CHECKERBOARD")
-    {
+  } else if (stereoType == "CHECKERBOARD") {
     return (VTK_STEREO_CHECKERBOARD);
-    }
-  #ifdef VTK_STEREO_SPLITVIEWPORT_HORIZONTAL
-  else if (stereoType == "SPLITVIEWPORT_HORIZONTAL")
-    {
+  }
+#ifdef VTK_STEREO_SPLITVIEWPORT_HORIZONTAL
+  else if (stereoType == "SPLITVIEWPORT_HORIZONTAL") {
     return (VTK_STEREO_SPLITVIEWPORT_HORIZONTAL);
-    }
-  #endif
-  else
-    {
-      return -1;
-    }
+  }
+#endif
+  else {
+    return -1;
+  }
 }
 
 VTKViewer::VTKViewer() :
   m_renderer(vtkSmartPointer < vtkRenderer >::New())
 {
+
+}
+
+void VTKViewer::start()
+{
   vtkSmartPointer < vtkRenderWindow > renderWindow =
-    vtkSmartPointer < vtkRenderWindow >::New();
+      vtkSmartPointer < vtkRenderWindow >::New();
   renderWindow->StereoCapableWindowOn();
   renderWindow->AddRenderer(m_renderer);
   QByteArray stereoType = qgetenv( "STEREO_TYPE" );
   int vtkStereoType = GetVTKStereoType(stereoType);
-  if (vtkStereoType != -1)
-    {
+  if (vtkStereoType != -1) {
     renderWindow->SetStereoType(vtkStereoType);
-    }
-  else
-    {
+  } else {
     renderWindow->SetStereoType(VTK_STEREO_RED_BLUE);
-    }
+  }
   m_renderer->ResetCamera();
   this->SetRenderWindow(renderWindow);
   this->resize(480, 480);
@@ -249,98 +232,77 @@ void VTKViewer::add(vtkPolyData * polyData)
   double range[2];
   polyData->GetScalarRange(range);
   vtkSmartPointer< vtkColorTransferFunction > colorMap
-    = vtkSmartPointer< vtkColorTransferFunction >::New();
+      = vtkSmartPointer< vtkColorTransferFunction >::New();
   colorMap->SetColorSpaceToLab();
   colorMap->AddRGBPoint(range[0], 0.865, 0.865, 0.865);
   colorMap->AddRGBPoint(range[1], 0.706, 0.016, 0.150);
   colorMap->Build();
 
   vtkSmartPointer < vtkPolyDataMapper > mapper =
-    vtkSmartPointer < vtkPolyDataMapper >::New();
+      vtkSmartPointer < vtkPolyDataMapper >::New();
   mapper->SetLookupTable(colorMap);
-  if (polyData->GetPointData()->GetNormals() == NULL)
-    {
+  if (polyData->GetPointData()->GetNormals() == NULL) {
     vtkSmartPointer< vtkPolyDataNormals > polyDataNormals
-      = vtkSmartPointer< vtkPolyDataNormals >::New();
+        = vtkSmartPointer< vtkPolyDataNormals >::New();
     setInputData(polyDataNormals, polyData);
     polyDataNormals->SetFeatureAngle(90.0);
     mapper->SetInputConnection(polyDataNormals->GetOutputPort());
-    }
-  else
-    {
+  } else {
     setInputData(mapper, polyData);
-    }
+  }
   vtkSmartPointer < vtkActor > actor =
-    vtkSmartPointer < vtkActor >::New();
+      vtkSmartPointer < vtkActor >::New();
   actor->GetProperty()->SetPointSize(3);
   actor->SetMapper(mapper);
   m_renderer->AddActor(actor);
+}
+
+void VTKViewer::test()
+{
+  ///TODO
 }
 
 void VTKViewer::add(const char * file_name)
 {
   // TODO:  add logic for other file formats.
   QString filename = QString::fromUtf8(file_name).toLower();
-  if (filename.endsWith(".vtk"))
-    {
+  if (filename.endsWith(".vtk")) {
     this->add(ReadLegacyVTK(file_name));
-    }
-  else if (filename.endsWith(".vtp"))
-    {
+  } else if (filename.endsWith(".vtp")) {
     this->add(read< vtkXMLPolyDataReader >(file_name));
-    }
-  else if (filename.endsWith(".ply"))
-    {
+  } else if (filename.endsWith(".ply")) {
     this->add(read< vtkPLYReader >(file_name));
-    }
-  else if (filename.endsWith(".obj"))
-    {
+  } else if (filename.endsWith(".obj")) {
     this->add(read< vtkOBJReader >(file_name));
-    }
-  else if (filename.endsWith(".stl"))
-    {
+  } else if (filename.endsWith(".stl")) {
     this->add(read< vtkSTLReader >(file_name));
-    }
-  else if (filename.endsWith(".vtu"))
-    {
+  } else if (filename.endsWith(".vtu")) {
     vtkSmartPointer< vtkXMLUnstructuredGridReader > reader =
-      vtkSmartPointer< vtkXMLUnstructuredGridReader >::New();
+        vtkSmartPointer< vtkXMLUnstructuredGridReader >::New();
     reader->SetFileName(file_name);
     reader->Update();
     this->add(ConvertDataSetToSurface(reader->GetOutputPort()));
-    }
-  else if (filename.endsWith(".pdb"))
-    {
+  } else if (filename.endsWith(".pdb")) {
     this->add(ReadPDB(file_name));
-    }
-  else if (filename.endsWith(".vti"))
-    {
+  } else if (filename.endsWith(".vti")) {
     this->add(readDataSet< vtkXMLImageDataReader >(file_name));
-    }
-  else if (filename.endsWith(".vts"))
-    {
+  } else if (filename.endsWith(".vts")) {
     this->add(readDataSet< vtkXMLStructuredGridReader >(file_name));
-    }
-  else if (filename.endsWith(".vtr"))
-    {
+  } else if (filename.endsWith(".vtr")) {
     this->add(readDataSet< vtkXMLRectilinearGridReader >(file_name));
-    }
-  else
-    {
+  } else {
     std::cerr << file_name
-      << ": BAD FILE NAME.  "
-      "Should end in VTK, VTP, PLY, OBJ, STL, VTU, or PDB.\n";
+              << ": BAD FILE NAME.  "
+                 "Should end in VTK, VTP, PLY, OBJ, STL, VTU, or PDB.\n";
     exit(1);
     return;
-    }
+  }
 }
 
 void VTKViewer::toggleRotate()
 {
-  if (m_timer.isActive())
-    m_timer.stop();
-  else
-    m_timer.start(33);
+  if (m_timer.isActive()) m_timer.stop();
+  else                    m_timer.start(33);
 }
 
 void VTKViewer::rotate()
@@ -373,8 +335,7 @@ void VTKViewer::nextStereoType()
   int type = rw->GetStereoType();
   type = (type % 9) + 1;
   this->setStereoType(type);
-  switch(type)
-    {
+  switch(type) {
     case 1: cout << "VTK_STEREO_CRYSTAL_EYES\n"; break;
     case 2: cout << "VTK_STEREO_RED_BLUE\n"; break;
     case 3: cout << "VTK_STEREO_INTERLACED\n"; break;
@@ -384,20 +345,20 @@ void VTKViewer::nextStereoType()
     case 7: cout << "VTK_STEREO_ANAGLYPH\n"; break;
     case 8: cout << "VTK_STEREO_CHECKERBOARD\n"; break;
     case 9: cout << "VTK_STEREO_SPLITVIEWPORT_HORIZONTAL\n"; break;
-    }
+  }
   rw->Render();
 }
 
 void VTKViewer::screenshot()
 {
   vtkSmartPointer< vtkWindowToImageFilter > windowToImageFilter =
-    vtkSmartPointer< vtkWindowToImageFilter >::New();
+      vtkSmartPointer< vtkWindowToImageFilter >::New();
   windowToImageFilter->SetInput( this->GetRenderWindow() );
   windowToImageFilter->SetMagnification(2);
   windowToImageFilter->SetInputBufferTypeToRGBA();
   windowToImageFilter->Update();
   vtkSmartPointer< vtkPNGWriter > writer =
-    vtkSmartPointer< vtkPNGWriter >::New();
+      vtkSmartPointer< vtkPNGWriter >::New();
   writer->SetInputConnection(windowToImageFilter->GetOutputPort());
   const char filename[] = "/tmp/screenshot.png";
   writer->SetFileName(filename);
