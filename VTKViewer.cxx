@@ -304,6 +304,8 @@ void VTKViewer::add(vtkPolyData * polyData)
   vtkSmartPointer < vtkActor > actor =
       vtkSmartPointer < vtkActor >::New();
   actor->GetProperty()->SetPointSize(3);
+  actor->GetProperty()->SetOpacity(0.8);
+  actor->GetProperty()->SetColor(0.4,0.4,0.2);
   actor->SetMapper(mapper);
   m_renderer->AddActor(actor);
 }
