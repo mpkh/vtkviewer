@@ -226,6 +226,7 @@ void VTKViewer::start()
     renderWindow->SetStereoType(VTK_STEREO_RED_BLUE);
   }
   m_renderer->ResetCamera();
+  m_renderer->UseDepthPeelingOn();
   this->SetRenderWindow(renderWindow);
   this->resize(480, 480);
   this->setMinimumSize(480, 360);
